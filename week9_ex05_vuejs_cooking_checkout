@@ -1,0 +1,340 @@
+<template>
+  <div class="app">
+
+    <!-- Header -->
+    <header>
+      <h1>👨‍🍳 Cooking Masterclass</h1>
+      <p>🛒 Cart Items: {{ totalItems }}</p>
+    </header>
+
+    <div class="layout">
+
+      <!-- LEFT: Course Catalogue -->
+      <div class="catalogue">
+        <h2>Our Courses</h2>
+        <div v-for="course in courses" :key="course.id" class="course-card">
+          <img :src="course.image" :alt="course.title" />
+          <div class="course-info">
+            <h3>{{ course.title }}</h3>
+            <p>{{ course.description }}</p>
+            <p class="price">R{{ course.price }}</p>
+            <span v-if="course.soldOut" class="sold-out-badge">Sold Out</span>
+            <button
+              v-if="!course.soldOut"
+              @click="addToCart(course)"
+            >
+              Add to Cart
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Cart -->
+      <div class="cart">
+        <h2>🛒 Your Cart</h2>
+
+        <!-- Empty cart message -->
+        <p v-if="cart.length === 0" class="empty-cart">
+          Your cart is empty. Add a course!
+        </p>
+
+        <!-- Cart items -->
+        <div v-for="(item, index) in cart" :key="index" class="cart-item">
+          <div class="cart-item-info">
+            <h4>{{ item.title }}</h4>
+            <p>R{{ item.price }} each</p>
+          </div>
+          <div class="cart-item-controls">
+            <button @click="decreaseQty(index)">-</button>
+            <span>{{ item.quantity }}</span>
+            <button @click="increaseQty(index)">+</button>
+          </div>
+          <div class="cart-item-total">
+            <p>R{{ item.price * item.quantity }}</p>
+            <button class="remove-btn" @click="removeItem(index)">✕</button>
+          </div>
+        </div>
+
+        <!-- Price Summary -->
+        <div v-if="cart.length > 0" class="summary">
+          <div class="summary-row">
+            <span>Subtotal</span>
+            <span>R{{ subtotal }}</span>
+          </div>
+          <div class="summary-row">
+            <span>Tax (15%)</span>
+            <span>R{{ tax }}</span>
+          </div>
+          <div class="summary-row total">
+            <span>Grand Total</span>
+            <span>R{{ grandTotal }}</span>
+          </div>
+          <button class="clear-btn" @click="clearCart">Clear Cart</button>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</template>
+
+
+<script>
+export default {
+  name: "App",
+
+  data() {
+    return {
+      courses: [
+        {
+          id: 1,
+          title: "Italian Pasta Masterclass",
+          description: "Learn authentic pasta from scratch.",
+          price: 450,
+          soldOut: false,
+          image: "https://placehold.co/200x120?text=Pasta"
+        },
+        {
+          id: 2,
+          title: "French Pastry Workshop",
+          description: "Master croissants and eclairs.",
+          price: 620,
+          soldOut: false,
+          image: "https://placehold.co/200x120?text=Pastry"
+        },
+        {
+          id: 3,
+          title: "Sushi Rolling Class",
+          description: "Japanese sushi techniques at home.",
+          price: 380,
+          soldOut: true,
+          image: "https://placehold.co/200x120?text=Sushi"
+        },
+        {
+          id: 4,
+          title: "Cape Malay Cooking",
+          description: "Traditional Cape Town flavours.",
+          price: 320,
+          soldOut: false,
+          image: "https://placehold.co/200x120?text=Cape+Malay"
+        },
+        {
+          id: 5,
+          title: "Bread Baking Basics",
+          description: "Sourdough and artisan breads.",
+          price: 290,
+          soldOut: false,
+          image: "https://placehold.co/200x120?text=Bread"
+        },
+        {
+          id: 6,
+          title: "Cake Decorating",
+          description: "Professional cake design skills.",
+          price: 510,
+          soldOut: true,
+          image: "https://placehold.co/200x120?text=Cake"
+        }
+      ],
+      cart: []
+    };
+  },
+
+  computed: {
+    totalItems() {
+      return this.cart.reduce((sum, item) => sum + item.quantity, 0);
+    },
+    subtotal() {
+      return this.cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    },
+    tax() {
+      return Math.round(this.subtotal * 0.15);
+    },
+    grandTotal() {
+      return this.subtotal + this.tax;
+    }
+  },
+
+  methods: {
+    addToCart(course) {
+      // Check if already in cart
+      const existing = this.cart.find(item => item.id === course.id);
+      if (existing) {
+        existing.quantity++;
+      } else {
+        this.cart.push({ ...course, quantity: 1 });
+      }
+    },
+
+    increaseQty(index) {
+      this.cart[index].quantity++;
+    },
+
+    decreaseQty(index) {
+      if (this.cart[index].quantity > 1) {
+        this.cart[index].quantity--;
+      } else {
+        this.cart.splice(index, 1);
+      }
+    },
+
+    removeItem(index) {
+      this.cart.splice(index, 1);
+    },
+
+    clearCart() {
+      this.cart = [];
+    }
+  }
+};
+</script>
+
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, sans-serif; background: #f5f5f5; }
+
+.app { max-width: 1100px; margin: 0 auto; padding: 20px; }
+
+header {
+  background: #c0392b;
+  color: white;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 700px) {
+  .layout { grid-template-columns: 1fr; }
+}
+
+.catalogue h2, .cart h2 {
+  margin-bottom: 15px;
+}
+
+.course-card {
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 15px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  display: flex;
+}
+
+.course-card img {
+  width: 120px;
+  height: 100px;
+  object-fit: cover;
+}
+
+.course-info {
+  padding: 10px;
+  flex: 1;
+}
+
+.course-info h3 { font-size: 15px; margin-bottom: 4px; }
+.course-info p { font-size: 13px; color: #666; margin-bottom: 4px; }
+
+.price { font-weight: bold; color: #c0392b !important; }
+
+.sold-out-badge {
+  background: #e74c3c;
+  color: white;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+button {
+  padding: 6px 12px;
+  background: #c0392b;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  margin-top: 6px;
+}
+
+.cart {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  height: fit-content;
+}
+
+.empty-cart { color: #999; text-align: center; padding: 20px; }
+
+.cart-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.cart-item-info h4 { font-size: 14px; }
+.cart-item-info p { font-size: 12px; color: #999; }
+
+.cart-item-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cart-item-controls button {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  margin: 0;
+  font-size: 16px;
+}
+
+.cart-item-total {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.remove-btn {
+  background: #999;
+  padding: 2px 7px;
+  margin: 0;
+  font-size: 12px;
+}
+
+.summary {
+  margin-top: 15px;
+  border-top: 2px solid #eee;
+  padding-top: 15px;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.summary-row.total {
+  font-weight: bold;
+  font-size: 16px;
+  color: #c0392b;
+}
+
+.clear-btn {
+  width: 100%;
+  margin-top: 10px;
+  background: #666;
+}
+</style>
